@@ -14,12 +14,12 @@ void f(int index) {
 		for (int i = 0; i < N; ++i) {
 			cout << p[i] << " ";
 		}
-		cout << endl;
+		cout << "\n";
 	}
 	else {
 		for (int x = 1; x <= N; ++x) {
-			if (chk[x-1]) continue;
-			chk[x-1] = true; p[index] = x;
+			if (chk[x - 1]) continue;
+			chk[x - 1] = true; p[index] = x;
 			f(index + 1);
 			chk[x - 1] = false;
 		}
@@ -27,6 +27,8 @@ void f(int index) {
 }
 
 int main() {
+	cin.tie(0);
+	ios_base::sync_with_stdio(false);
 	cin >> N;
 	f(0);
 
