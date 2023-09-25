@@ -6,41 +6,62 @@ using namespace std;
 // #include <set>
 // #include <stack>
 #include <cstring> // memset
+// #include <map>
+// #include <deque>
+#define INF 98765432
 
-int n, m, t, s, g, h, a, b, d, i, j, x, T;
-int dist[2001], visited[2001];
-int cur, curD, nxt, nxtD;
+int T, n, m, t, s, g, h, a, b, d, tmp;
+vector<int> destination;
 vector<pair<int, int>> v[2001];
-priority_queue<int, vector<int>, greater<int>> q;
+int dist[2001], ddist[2001];
+int dist1, dist2;
+bool found;
+priority_queue<int, vector<int>, greater<int>> pqout;
 
-void dijkstra(int st) {
-    fill(dist, dist + n + 1, 987654321);
-    dist[s] = 0;
-
+void bfs2(int st) {
+    ddist[st] = 0;
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
-    pq.push({0, s});
 
+    pq.push({0, st});
+
+    int curd, cur, nxtd, nxt;
     while (!pq.empty()) {
-        curD = pq.top().first, cur = pq.top().second;
+        curd = pq.top().first, cur = pq.top().second;
         pq.pop();
-        if (curD > dist[cur]) continue;
 
-        for (pair<int, int> next : v[cur]) {
-            nxt = next.first, nxtD = next.second;
-            if (dist[nxt] > dist[cur] + nxtD) {
-                dist[nxt] = dist[cur] + nxtD;
-                visited[nxt] = cur;
-                pq.push({dist[nxt], nxt});
+        if (curd > ddist[cur]) continue;
+
+        for (pair<int, int> i : v[cur]) {
+            nxt = i.first, nxtd = i.second;
+            if (ddist[nxt] > ddist[cur] + nxtd) {
+                ddist[nxt] = ddist[cur] + nxtd;
+                pq.push({ddist[nxt], nxt});
             }
         }
     }
 }
 
-void reset() {
-    for (i = 0; i <= n; ++i) v[i].clear();
-    while (!q.empty()) q.pop();
-    n = m = t = s = g = h = a = b = d = i = j = x = 0;
-    memset(visited, 0, 2001 * sizeof(int));
+void bfs(int st) {
+    dist[st] = 0;
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+
+    pq.push({0, st});
+
+    int curd, cur, nxtd, nxt;
+    while (!pq.empty()) {
+        curd = pq.top().first, cur = pq.top().second;
+        pq.pop();
+
+        if (curd > dist[cur]) continue;
+
+        for (pair<int, int> i : v[cur]) {
+            nxt = i.first, nxtd = i.second;
+            if (dist[nxt] > dist[cur] + nxtd) {
+                dist[nxt] = dist[cur] + nxtd;
+                pq.push({dist[nxt], nxt});
+            }
+        }
+    }
 }
 
 int main() {
@@ -50,54 +71,62 @@ int main() {
     cin >> T;
 
     while (T-- != 0) {
+        found = false;
+
         cin >> n >> m >> t;
         cin >> s >> g >> h;
 
-        for (i = 0; i < m; ++i) {
+        for (int i = 0; i < m; ++i) {
             cin >> a >> b >> d;
-            v[b].push_back({a, d});
+
             v[a].push_back({b, d});
+            v[b].push_back({a, d});
         }
 
-        for (i = 0; i < t; ++i) {
-            cin >> x;
-            q.push(x);
+        for (int i = 0; i < t; ++i) {
+            cin >> tmp;
+            destination.push_back(tmp);
         }
 
-        memset(dist, 987654321, (n + 1) * sizeof(int));
-        dist[s] = 0;
+        // get dist g
+        memset(dist, INF, (n + 1) * sizeof(int));
+        bfs(s);
+        if (dist[h] < dist[g]) {
+            tmp = g;
+            g = h;
+            h = tmp;
+        }
 
-        dijkstra(s);
+        dist1 = dist[g];
 
-        b = 0;
-        while (!q.empty()) {
-            j = q.top();
-            q.pop();
+        memset(ddist, INF, (n + 1) * sizeof(int));
+        bfs2(g);
 
-            a = 0;
-            i = j;
-            while(j) {
-                if (!a) {
-                    if (j == h) a = h;
-                    else if (j == g) a = g;
-                } else {
-                    if (a == h && j != g) break;
-                    else if (a == g && j != h) break;
-                    else {
-                        cout << i << " ";
-                        b = 1;
-                        break;
-                    }
-                }
-                j = visited[j];
+        dist2 = ddist[h];
+
+        memset(ddist, INF, (n + 1) * sizeof(int));
+        bfs2(h);
+
+        for (int i : destination) {
+            if (dist[i] == ddist[i] + dist1 + dist2) {
+                pqout.push(i);
             }
         }
 
-        if (b) cout << "\n";
+        if (!pqout.empty()) found = true;
+        while (!pqout.empty()) {
+            cout << pqout.top() << " ";
+            pqout.pop();
+        }
 
-        reset();
+        if (found) cout << "\n";
+
+        // reset
+        for (int i = 1; i <= n; ++i) {
+            v[i].clear();
+        }
+        destination.clear();
     }
 
     return 0;
 }
-// g까지의 거리 g->h의 거리 h->목적지 까지의 거리 계산해서 s부터 목적지까지의 거리와 같은지 보면됨.
